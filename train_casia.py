@@ -1,5 +1,6 @@
 """
 Train DenseNet121 on CASIA2.0 (pretrain stage).
+Extended training: 100 epochs for better convergence and feature learning on forgery detection task.
 """
 
 import os
@@ -18,7 +19,7 @@ import torch.optim as optim
 from torch.cuda.amp import autocast, GradScaler
 
 # -------------------------
-# Utils
+# Utils 
 # -------------------------
 def set_seed(seed=42):
     import random
@@ -185,17 +186,23 @@ def main(args):
     scaler = GradScaler()
 
     # Training loop
+    import datetime
+    start_time = datetime.datetime.now()
+    
     for epoch in range(start_epoch, args.epochs + 1):
-        print(f"\nEpoch {epoch}/{args.epochs}")
+        print(f"\n{'='*70}")
+        print(f"📊 EPOCH {epoch}/{args.epochs} | Time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"{'='*70}")
+        
         train_loss, train_auc = train_epoch(model, train_loader, criterion, optimizer, device, scaler)
-        print(f"Train loss: {train_loss:.4f} | Train AUC: {train_auc:.4f}")
+        print(f"✓ Train loss: {train_loss:.4f} | Train AUC: {train_auc:.4f}")
 
         val_loss, val_auc = (float('nan'), float('nan'))
         if val_loader:
             val_loss, val_auc = validate_epoch(model, val_loader, criterion, device)
-            print(f"Val loss:   {val_loss:.4f} | Val AUC:   {val_auc:.4f}")
+            print(f"✓ Val loss:   {val_loss:.4f} | Val AUC:   {val_auc:.4f}")
         else:
-            print("No validation loader found; skipping validation.")
+            print("⚠ No validation loader found; skipping validation.")
 
         # Scheduler step
         scheduler.step()
@@ -221,9 +228,23 @@ def main(args):
                 'optimizer': optimizer.state_dict(),
                 'best_auc': best_auc,
             }, args.output_dir, filename="best.pth.tar")
-            print(f"New best model saved with Val AUC: {best_auc:.4f}")
+            print(f"🏆 New best model saved with Val AUC: {best_auc:.4f}")
+        
+        # Progress indicator
+        progress_pct = (epoch / args.epochs) * 100
+        print(f"📈 Progress: {progress_pct:.1f}% ({epoch}/{args.epochs})")
 
-    print("Training finished. Best val AUC:", best_auc)
+    # Training completion
+    end_time = datetime.datetime.now()
+    total_time = end_time - start_time
+    print(f"\n{'='*70}")
+    print(f"🎉 TRAINING COMPLETED SUCCESSFULLY!")
+    print(f"{'='*70}")
+    print(f"Best val AUC: {best_auc:.4f}")
+    print(f"Total training time: {total_time}")
+    print(f"Completion time: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Best model saved: {os.path.join(args.output_dir, 'best.pth.tar')}")
+    print(f"{'='*70}\n")
 
 # -------------------------
 # Argparse
@@ -232,7 +253,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="DenseNet121 CASIA Pretrain")
     parser.add_argument("--data_dir", type=str, required=True, help="Path to CASIA dataset (expects 'train' and 'val' subfolders)")
     parser.add_argument("--output_dir", type=str, default="checkpoints/casia", help="Where to save checkpoints")
-    parser.add_argument("--epochs", type=int, default=40)
+    parser.add_argument("--epochs", type=int, default=100, help="Number of training epochs (default: 100 for extended training)")
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument("--weight_decay", type=float, default=1e-5)

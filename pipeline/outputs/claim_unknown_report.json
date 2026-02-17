@@ -1,0 +1,60 @@
+{
+  "metadata": {
+    "timestamp": "2026-01-20T16:05:18.157982",
+    "patient_id": null,
+    "claim_id": null,
+    "claim_amount": 25000.0,
+    "previous_claim_count": 0
+  },
+  "icd_verification": {
+    "success": false,
+    "status": "error",
+    "explanation": "ICD module error: ICD validation module not found. Ensure icd_validation package is installed."
+  },
+  "image_analysis": {
+    "success": false,
+    "cnn_score": 0.0,
+    "ela_score": 0.0,
+    "phash_score": null,
+    "fused_score": 0.0,
+    "forgery_verdict": "error",
+    "confidence": "low",
+    "ela_heatmap_path": null,
+    "explanation": "CNN scoring failed: local variable 'transforms' referenced before assignment"
+  },
+  "fraud_assessment": {
+    "success": true,
+    "fraud_risk_percentage": 0.71,
+    "risk_level": "low",
+    "recommendation": "approve",
+    "risk_factors": [
+      "ICD code mismatch: Low confidence diagnosis validation (score: 0.00)",
+      "High claim amount: Large financial exposure (log amount: 10.13)"
+    ],
+    "feature_scores": {
+      "icd_match_score": 0.0,
+      "cnn_forgery_score": 0.0,
+      "ela_score": 0.0,
+      "phash_score": 0.0,
+      "final_image_forgery_score": 0.0,
+      "claim_amount_log": 10.1267,
+      "previous_claim_count": 0.0
+    },
+    "feature_importances": {
+      "icd_match_score": 0.6251,
+      "cnn_forgery_score": 0.0,
+      "ela_score": 0.0022,
+      "phash_score": 0.0046,
+      "final_image_forgery_score": 0.3615,
+      "claim_amount_log": 0.0,
+      "previous_claim_count": 0.0066
+    },
+    "explanation": "LOW FRAUD RISK: Fraud risk score is 0.7%. Key indicators: ICD code mismatch: Low confidence diagnosis validation (score: 0.00); High claim amount: Large financial exposure (log amount: 10.13)."
+  },
+  "integrated_verdict": {
+    "overall_recommendation": "manual_review",
+    "confidence": 0.0,
+    "risk_summary": "One or more modules encountered errors; manual review required."
+  },
+  "explanation": "\ud83c\udfe5 ICD CODE VALIDATION: ERROR\n   ICD module error: ICD validation module not found. Ensure icd_validation package is installed.\n\n\ud83d\uddbc\ufe0f  IMAGE ANALYSIS: ERROR\n   CNN scoring failed: local variable 'transforms' referenced before assignment\n\n\u26a0\ufe0f  FRAUD RISK ASSESSMENT: LOW\n   LOW FRAUD RISK: Fraud risk score is 0.7%. Key indicators: ICD code mismatch: Low confidence diagnosis validation (score: 0.00); High claim amount: Large financial exposure (log amount: 10.13).\n\n\u2705 FINAL VERDICT: MANUAL_REVIEW\n   One or more modules encountered errors; manual review required."
+}

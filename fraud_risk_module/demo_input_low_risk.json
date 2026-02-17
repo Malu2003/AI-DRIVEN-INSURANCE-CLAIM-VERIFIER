@@ -1,0 +1,9 @@
+{
+  "icd_match_score": 0.9,
+  "cnn_forgery_score": 0.1,
+  "ela_score": 0.05,
+  "phash_score": 0.0,
+  "final_image_forgery_score": 0.12,
+  "claim_amount_log": 2.0,
+  "previous_claim_count": 0
+}

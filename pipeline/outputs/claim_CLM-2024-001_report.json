@@ -1,0 +1,73 @@
+{
+  "metadata": {
+    "timestamp": "2026-01-17T13:56:50.866583",
+    "patient_id": "PAT-12345",
+    "claim_id": "CLM-2024-001",
+    "claim_amount": 25000,
+    "previous_claim_count": 1
+  },
+  "icd_verification": {
+    "success": true,
+    "status": "valid",
+    "match_score": 1.0,
+    "predicted_icds": [
+      [
+        "C18",
+        0.72
+      ],
+      [
+        "D12.2",
+        0.51
+      ],
+      [
+        "C50",
+        0.18
+      ]
+    ],
+    "explanation": "ICD match computed from mock probabilities with explicit masking."
+  },
+  "image_analysis": {
+    "success": true,
+    "cnn_score": 0.5544631481170654,
+    "ela_score": 0.25285784154156454,
+    "phash_score": 0.0,
+    "fused_score": 0.353088926521002,
+    "forgery_verdict": "authentic",
+    "confidence": "high",
+    "explanation": "Scores loaded from eval CSV; ELA visualized locally."
+  },
+  "fraud_assessment": {
+    "success": true,
+    "fraud_risk_percentage": 0.01,
+    "risk_level": "low",
+    "recommendation": "approve",
+    "risk_factors": [
+      "High claim amount: Large financial exposure (log amount: 10.13)"
+    ],
+    "feature_scores": {
+      "icd_match_score": 1.0,
+      "cnn_forgery_score": 0.5545,
+      "ela_score": 0.2529,
+      "phash_score": 0.0,
+      "final_image_forgery_score": 0.3531,
+      "claim_amount_log": 10.1267,
+      "previous_claim_count": 1.0
+    },
+    "feature_importances": {
+      "icd_match_score": 0.6251,
+      "cnn_forgery_score": 0.0,
+      "ela_score": 0.0022,
+      "phash_score": 0.0046,
+      "final_image_forgery_score": 0.3615,
+      "claim_amount_log": 0.0,
+      "previous_claim_count": 0.0066
+    },
+    "explanation": "LOW FRAUD RISK: Fraud risk score is 0.0%. Key indicators: High claim amount: Large financial exposure (log amount: 10.13)."
+  },
+  "integrated_verdict": {
+    "overall_recommendation": "approve",
+    "confidence": 0.95,
+    "risk_summary": "All validation checks passed. Claim appears legitimate."
+  },
+  "explanation": "\ud83c\udfe5 ICD CODE VALIDATION: VALID\n   ICD match computed from mock probabilities with explicit masking.\n\n\ud83d\uddbc\ufe0f  IMAGE ANALYSIS: AUTHENTIC\n   Scores loaded from eval CSV; ELA visualized locally.\n\n\u26a0\ufe0f  FRAUD RISK ASSESSMENT: LOW\n   LOW FRAUD RISK: Fraud risk score is 0.0%. Key indicators: High claim amount: Large financial exposure (log amount: 10.13).\n\n\u2705 FINAL VERDICT: APPROVE\n   All validation checks passed. Claim appears legitimate."
+}

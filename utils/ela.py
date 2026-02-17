@@ -39,11 +39,48 @@ def compute_ela(image_path, quality=90, scale=10):
     
     # Compute absolute difference and scale
     diff = np.abs(orig_array - recom_array) * scale
+    # Clip to valid image range
+    diff = np.clip(diff, 0, 255).astype(np.uint8)
     
     # Cleanup
     os.remove(temp_path)
     
     return diff
+
+
+def compute_ela_score(diff_image):
+    """Compute a normalized ELA score in [0,1] from the ELA diff image.
+
+    Uses the mean intensity of the ELA image normalized by 255.
+    Higher values indicate larger compression artifacts (more suspicious).
+    """
+    if isinstance(diff_image, np.ndarray):
+        # convert to grayscale intensity
+        if diff_image.ndim == 3:
+            gray = np.mean(diff_image, axis=2)
+        else:
+            gray = diff_image
+        mean_val = float(np.mean(gray))
+        score = np.clip(mean_val / 255.0, 0.0, 1.0)
+        return score
+    else:
+        raise ValueError('diff_image must be a numpy array')
+
+
+def save_ela_heatmap(diff_image, out_path, cmap=cv2.COLORMAP_JET):
+    """Save ELA diff image as a heatmap to `out_path`.
+
+    Uses OpenCV colormap for a compact dependency set.
+    """
+    if diff_image.ndim == 3:
+        gray = np.mean(diff_image, axis=2).astype(np.uint8)
+    else:
+        gray = diff_image.astype(np.uint8)
+
+    # normalize to 0-255
+    norm = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+    heat = cv2.applyColorMap(norm, cmap)
+    cv2.imwrite(out_path, heat)
 
 def process_directory(input_dir, output_dir, quality=90, scale=10):
     """
