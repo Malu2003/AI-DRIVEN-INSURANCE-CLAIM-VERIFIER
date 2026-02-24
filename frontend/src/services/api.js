@@ -80,11 +80,28 @@ export const generateReport = async (clinicalDocument, imageFile, claimAmount, c
     const response = await apiClient.post('/generate-report', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
+        'Accept': 'application/pdf',
       },
       responseType: 'blob',
     });
-    return response.data;
+    const contentDisposition = response.headers?.['content-disposition'] || '';
+    const fileNameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+    const fileName = fileNameMatch?.[1] || `claim_report_${claimId || 'report'}.pdf`;
+
+    return {
+      blob: response.data,
+      fileName,
+      contentType: response.headers?.['content-type'] || 'application/pdf',
+    };
   } catch (error) {
+    if (error?.response?.data instanceof Blob) {
+      try {
+        const message = await error.response.data.text();
+        throw { error: true, message: message || 'Failed to generate report' };
+      } catch {
+        throw { error: true, message: 'Failed to generate report' };
+      }
+    }
     throw error.response?.data || { error: true, message: 'Failed to generate report' };
   }
 };

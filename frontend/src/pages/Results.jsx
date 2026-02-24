@@ -32,7 +32,7 @@ const Results = () => {
     setDownloadError('');
 
     try {
-      const pdfBlob = await generateReport(
+      const reportResponse = await generateReport(
         clinicalDocument,
         imageFile,
         claimAmount,
@@ -40,17 +40,30 @@ const Results = () => {
         patientId
       );
 
+      const pdfBlob = reportResponse?.blob;
+      const fileName = reportResponse?.fileName || `claim_report_${claimId || 'report'}.pdf`;
+      const contentType = reportResponse?.contentType || '';
+
+      if (!(pdfBlob instanceof Blob)) {
+        throw new Error('Invalid file received from server');
+      }
+
+      if (contentType && !contentType.includes('pdf')) {
+        const text = await pdfBlob.text();
+        throw new Error(text || 'Server returned a non-PDF response');
+      }
+
       // Create download link
       const url = window.URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `claim_report_${claimId || 'report'}.pdf`;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      setDownloadError('Failed to download PDF report. Please try again.');
+      setDownloadError(err?.message || 'Failed to download PDF report. Please try again.');
       console.error('PDF download error:', err);
     } finally {
       setDownloading(false);
