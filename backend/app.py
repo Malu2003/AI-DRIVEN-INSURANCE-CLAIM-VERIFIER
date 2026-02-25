@@ -229,12 +229,58 @@ def _run_pipeline_from_request(save_output=False):
 
                 ela_diff = ela_utils.compute_ela(image_path, quality=90, scale=10)
                 image_name = Path(image_path).stem
+                ela_raw_heatmap_path = os.path.join(
+                    app.config['UPLOAD_FOLDER'],
+                    f"{image_name}_ela_heatmap_raw.png",
+                )
                 ela_heatmap_path = os.path.join(
                     app.config['UPLOAD_FOLDER'],
-                    f"{image_name}_ela_heatmap.png",
+                    f"{image_name}_ela_localization.png",
                 )
-                ela_utils.save_ela_visualization(ela_diff, ela_heatmap_path, scale=10)
+                if hasattr(ela_utils, "save_ela_visualization"):
+                    ela_utils.save_ela_visualization(ela_diff, ela_raw_heatmap_path, scale=10)
+                else:
+                    ela_utils.save_ela_heatmap(ela_diff, ela_raw_heatmap_path)
+
+                localization = None
+                if hasattr(ela_utils, "save_ela_localization_overlay"):
+                    localization = ela_utils.save_ela_localization_overlay(
+                        image_path,
+                        ela_diff,
+                        ela_heatmap_path,
+                        anomaly_percentile=95,
+                        min_area_ratio=0.0008,
+                        max_regions=5,
+                    )
+                else:
+                    ela_heatmap_path = ela_raw_heatmap_path
+
                 image_analysis["ela_heatmap_path"] = ela_heatmap_path
+                image_analysis["ela_heatmap_raw_path"] = ela_raw_heatmap_path
+                if localization:
+                    image_analysis["ela_localization"] = localization
+                    
+                    # Update ELA score using localization metrics
+                    # This boosts the ela_score when there's clear suspicious area detected
+                    suspicious_area_pct = localization.get("suspicious_area_pct", 0.0)
+                    ela_score_updated = ela_utils.compute_ela_score(
+                        ela_diff, 
+                        suspicious_area_pct=suspicious_area_pct
+                    )
+                    image_analysis["ela_score"] = ela_score_updated
+                    
+                    # Also update final_image_forgery_score since it depends on ela_score
+                    # Recompute the fused score with updated ela_score
+                    from inference.image_forgery_score import fuse_scores
+                    cnn_score = image_analysis.get("cnn_forgery_score", 0.5)
+                    phash_score = image_analysis.get("phash_score", 0.0)
+                    updated_final_score = fuse_scores(
+                        cnn_score, 
+                        ela_score_updated, 
+                        phash_score,
+                        weights=(0.55, 0.25, 0.20)
+                    )
+                    image_analysis["final_image_forgery_score"] = updated_final_score
             except Exception:
                 pass
 
